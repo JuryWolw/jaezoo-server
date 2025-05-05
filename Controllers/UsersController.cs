@@ -46,7 +46,28 @@ namespace JaezooServer.Controllers
                 return Unauthorized("Неверный логин или пароль");
             }
 
-            return Ok(new { Login = existingUser.Login, Id = existingUser.Id });
+            return Ok(new { login = existingUser.Login, id = existingUser.Id });
+        }
+
+        [HttpGet("search")]
+        public IActionResult Search([FromQuery] string query)
+        {
+            if (string.IsNullOrEmpty(query))
+            {
+                return BadRequest("Не указан запрос для поиска");
+            }
+
+            var matchingUsers = users
+                .Where(u => u.Id == query || u.Login.Contains(query, StringComparison.OrdinalIgnoreCase))
+                .Select(u => new { u.Id, u.Login })
+                .ToList();
+
+            if (!matchingUsers.Any())
+            {
+                return NotFound("Пользователи не найдены");
+            }
+
+            return Ok(matchingUsers);
         }
 
         [HttpPost("addFriend")]
