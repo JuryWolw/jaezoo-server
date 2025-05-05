@@ -11,7 +11,7 @@ namespace JaezooServer.Controllers
     [Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
-        private static List<User> users = new();
+        private static readonly List<User> users = new();
 
         [HttpPost("register")]
         public IActionResult Register([FromBody] User user)
@@ -33,15 +33,15 @@ namespace JaezooServer.Controllers
         }
 
         [HttpPost("login")]
-        public IActionResult Login([FromBody] User user)
+        public IActionResult Login([FromBody] LoginRequest request)
         {
-            if (user == null || string.IsNullOrEmpty(user.Login) || string.IsNullOrEmpty(user.Password))
+            if (request == null || string.IsNullOrEmpty(request.Login) || string.IsNullOrEmpty(request.Password))
             {
                 return BadRequest("Некорректные данные пользователя");
             }
 
-            var existingUser = users.FirstOrDefault(u => u.Login == user.Login);
-            if (existingUser == null || !BCrypt.Net.BCrypt.Verify(user.Password, existingUser.Password))
+            var existingUser = users.FirstOrDefault(u => u.Login == request.Login);
+            if (existingUser == null || !BCrypt.Net.BCrypt.Verify(request.Password, existingUser.Password))
             {
                 return Unauthorized("Неверный логин или пароль");
             }
@@ -94,6 +94,12 @@ namespace JaezooServer.Controllers
 
             return Ok(new { Message = "Профиль обновлен" });
         }
+    }
+
+    public class LoginRequest
+    {
+        public required string Login { get; set; }
+        public required string Password { get; set; }
     }
 
     public class FriendRequest
